@@ -10,7 +10,7 @@ const translate = new Translate({
 
 const getTranslation = async (req, res) => {
 
-    const { text , targetlanguage } = req.query;
+    let { text , targetlanguage } = req.query;
     //default is French as task required English to French Only
     targetlanguage ? targetlanguage : targetlanguage = "fr";
 
