@@ -10,9 +10,9 @@ const translate = new Translate({
 
 const getTranslation = async (req, res) => {
 
-    const { text , targetLanguage } = req.query;
+    const { text , targetlanguage } = req.query;
     //default is French as task required English to French Only
-    targetLanguage ? targetLanguage : targetLanguage = "fr";
+    targetlanguage ? targetlanguage : targetlanguage = "fr";
 
     try {
 
@@ -21,12 +21,12 @@ const getTranslation = async (req, res) => {
 
         //Checking if the request language is english then only we will procced
         if(checkLang?.[0]?.language == 'en'){
-            
+
             if (!text) {
                 return res.status(400).json({ message: 'Missing or incorrect query parameter: text' });
             }
     
-            const translated = await translate.translate(text, { to: targetLanguage });
+            const translated = await translate.translate(text, { to: targetlanguage });
     
             if(translated?.[0]){
                 res.send({
