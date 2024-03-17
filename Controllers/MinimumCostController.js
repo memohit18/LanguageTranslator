@@ -1,16 +1,7 @@
-// Memoization object to store already computed routes
-const memoization = {};
 
 function generateRoutes(centers, currentRoute, routes) {
-    const key = centers.join('-');
-    if (memoization[key]) {
-        routes.push(...memoization[key]);
-        return;
-    }
-    
     if (centers.length === 0) {
         routes.push(currentRoute.slice()); // Add the current route to the routes array
-        memoization[key] = [currentRoute.slice()];
         return;
     }
 
@@ -36,39 +27,211 @@ function getAllPossibleRoutes(centers) {
     return routes;
 }
 
-function calculateTotalCost(route, totalweightcost) {
-    const distance = {
-        c1l1: 3,
-        c2l1: 2.5,
-        c3l1: 2,
-        c1c2: 4,
-        c2c3: 3
-    };
 
+function calculateTotalCost(route,totalweightcost) {
     let totalCost = [];
+    let L1Cost = 10
+    // Calculate cost from starting point to the first center
+    let distance = {
+        c1c2 : 4,
+        c1l1 : 3,
+        c2l1 : 2.5,
+        c3l1 : 2,
+        c2c3 : 3
+    }
+    //Incase of single delivery
+    if (route.length == 1 ){
+        if(route[0] == 'C1'){
+            totalCost.push(totalweightcost['C1'] * distance.c1l1)
+        }
+        else if(route[0] == 'C2'){
+            totalCost.push(totalweightcost['C2'] * distance.c2l1)
+        }
+        else if(route[0] == 'C3'){
+            totalCost.push(totalweightcost['C3'] * distance.c3l1)
+        }
+    }
+    
+    if (route.length == 2 ){
+        //incase 2 center is used
+        // && ((element == 'C2' && element == 'C3') || (element == 'C3' && element == 'C1')
+        if (route[0] == 'C1' && route[1] == 'C2'){
+            const possibleRoutes = getAllPossibleRoutes(route);
+            let mini = 999999999
+            for (let index = 0; index < possibleRoutes.length; index++) {
+                let min = 99999999
+                const location = possibleRoutes[index];
+                let actualTotal = 0
+                for (let j = 0; j < location.length; j++) {
+                    let currentTotal = 0 
+                    let currentPostition = location[j]
+                    let oldposition = location[j-1
+                    ]
+                    if(currentPostition == 'C1' && location[j+1] == 'L1'){
+                        currentTotal += distance.c1l1 * totalweightcost['C1']
+                    }else if(currentPostition == 'L1' && location[j+1] == 'C2'){
+                        currentTotal += distance.c2l1 * L1Cost
+                    }else if(currentPostition == 'L1' && location[j+1] == 'C1'){
+                        currentTotal += distance.c1l1 * L1Cost
+                    }else if(currentPostition == 'C1' && location[j+1] == 'L1'){
+                        currentTotal += distance.c1l1 * totalweightcost['C1']
+                    }else if(currentPostition == 'C2' && location[j+1] == 'L1'){
+                        currentTotal += distance.c2l1 * totalweightcost['C2']
+                    }else if(currentPostition == 'C1' && location[j+1] == 'C2'){
+                        currentTotal += distance.c1c2 * totalweightcost['C1']
+                    }else if(currentPostition == 'C2' && location[j+1] == 'C1'){
+                        currentTotal += distance.c1c2 * totalweightcost['C2']
+                    }
+                    actualTotal += currentTotal
+                }
+                mini = Math.min(actualTotal,min)
+                totalCost.push(mini)    
+            }
+        }else if(route[0] == 'C2' && route[1] == 'C3'){
+            const possibleRoutes = getAllPossibleRoutes(route);
+            let mini = 999999999
+            for (let index = 0; index < possibleRoutes.length; index++) {
+                let min = 99999999
+                const location = possibleRoutes[index];
+                let actualTotal = 0
+                for (let j = 0; j < location.length; j++) {
+                    let currentTotal = 0 
+                    let currentPostition = location[j]
 
-    const calculateRouteCost = (route) => {
-        let cost = 0;
-        for (let i = 0; i < route.length - 1; i++) {
-            const current = route[i];
-            const next = route[i + 1];
-            if (current === 'L1') {
-                cost += distance[`c${next}l1`] * totalweightcost[`C${next}`];
-            } else if (next === 'L1') {
-                cost += distance[`c${current}l1`] * 10; // L1 cost
-            } else {
-                cost += distance[`c${current}c${next}`] * totalweightcost[`C${current}`];
+                    if(currentPostition == 'C2' && location[j+1] == 'L1'){
+                        currentTotal += distance.c2l1 * totalweightcost['C2']
+                    }else if(currentPostition == 'L1' && location[j+1] == 'C3'){
+                        currentTotal += distance.c3l1 * L1Cost
+                    }else if(currentPostition == 'L1' && location[j+1] == 'C2'){
+                        currentTotal += distance.c3l1 * L1Cost
+                    }else if(currentPostition == 'C3' && location[j+1] == 'L1'){
+                        currentTotal += distance.c3l1 * totalweightcost['C3']
+                    }else if(currentPostition == 'C2' && location[j+1] == 'L1'){
+                        currentTotal += distance.c2l1 * totalweightcost['C2']
+                    }else if(currentPostition == 'C3' && location[j+1] == 'C2'){
+                        currentTotal += distance.c2c3 * totalweightcost['C3']
+                    }else if(currentPostition == 'C2' && location[j+1] == 'C3'){
+                        currentTotal += distance.c2c3 * totalweightcost['C2']
+                    }
+                    actualTotal += currentTotal
+                }
+                mini = Math.min(actualTotal,min)
+                totalCost.push(mini)    
+            }
+        }else if(route[0] == 'C1' && route[1] == 'C3'){
+            let possibleRoutes = getAllPossibleRoutes(route);
+
+            const filteredRoutes = possibleRoutes.filter(route => {
+                const indexC1 = route.indexOf('C1');
+                const indexC3 = route.indexOf('C3');
+                return !(indexC1 !== -1 && indexC3 !== -1 && Math.abs(indexC1 - indexC3) === 1);
+            })
+            let mini = 999999999
+            for (let index = 0; index < filteredRoutes.length; index++) {
+                let min = 99999999
+                const location = filteredRoutes[index];
+                let actualTotal = 0
+                for (let j = 0; j < location.length; j++) {
+                    let currentTotal = 0 
+                    let currentPostition = location[j]
+                    if(currentPostition == 'C1' && location[j+1] == 'L1'){
+                        currentTotal += distance.c1l1 * totalweightcost['C1']
+                    }else if(currentPostition == 'L1' && location[j+1] == 'C1'){
+                        currentTotal += distance.c1l1 * L1Cost
+                    }else if(currentPostition == 'C1' && location[j+1] == 'L1'){
+                        currentTotal += distance.c1
+                        l1 * totalweightcost['C1']
+                    }else if(currentPostition == 'C3' && location[j+1] == 'L1'){
+                        currentTotal += distance.c3l1 * totalweightcost['C3']
+                    }else if(currentPostition == 'L1' && location[j+1] == 'C1'){
+                        currentTotal += distance.c3l1 * L1Cost
+                    }else if(currentPostition == 'L1' && location[j+1] == 'C3'){
+                        currentTotal += distance.c3l1 * L1Cost
+                    }
+                    if(currentTotal != 0){
+                        actualTotal += currentTotal
+                    }
+
+                }
+                mini = Math.min(actualTotal,min)
+                totalCost.push(mini)  
+            
             }
         }
-        return cost;
-    };
+    }
+    if (route.length == 3){
+        //incase 3 center are used
+        if (route[0] == 'C1' && route[1] == 'C2' && route[2] == 'C3'){
+            let possibleRoutes = getAllPossibleRoutes(route);
 
-    for (const possibleRoute of getAllPossibleRoutes(route)) {
-        totalCost.push(calculateRouteCost(possibleRoute));
+            const filteredRoutes = possibleRoutes.filter(route => {
+                const indexC1 = route.indexOf('C1');
+                const indexC3 = route.indexOf('C3');
+                return !(indexC1 !== -1 && indexC3 !== -1 && Math.abs(indexC1 - indexC3) === 1);
+            })
+
+
+            for (let index = 0; index < filteredRoutes.length; index++) {
+                let min = 99999999
+                const location = filteredRoutes[index];
+                let actualTotal = 0
+                for (let j = 0; j < location.length; j++) {
+                    let currentTotal = 0 
+                    let currentPostition = location[j]
+                    if(currentPostition == 'C1' && location[j+1] == 'L1'){
+                        currentTotal += distance.c1l1 * totalweightcost['C1']
+                    }else if(currentPostition == 'L1' && location[j+1] == 'C2'){
+                        currentTotal += distance.c2l1 * L1Cost
+                    }else if(currentPostition == 'L1' && location[j+1] == 'C1'){
+                        currentTotal += distance.c1l1 * L1Cost
+                    }else if(currentPostition == 'C1' && location[j+1] == 'L1'){
+                        currentTotal += distance.c1l1 * totalweightcost['C1']
+                    }else if(currentPostition == 'C2' && location[j+1] == 'L1'){
+                        currentTotal += distance.c2l1 * totalweightcost['C2']
+                    }else if(currentPostition == 'C1' && location[j+1] == 'C2'){
+                        currentTotal += distance.c1c2 * totalweightcost['C1']
+                    }else if(currentPostition == 'C2' && location[j+1] == 'C1'){
+                        currentTotal += distance.c1c2 * totalweightcost['C2']
+                    }else if(currentPostition == 'C2' && location[j+1] == 'L1'){
+                        currentTotal += distance.c2l1 * totalweightcost['C2']
+                    }else if(currentPostition == 'L1' && location[j+1] == 'C3'){
+                        currentTotal += distance.c3l1 * L1Cost
+                    }else if(currentPostition == 'L1' && location[j+1] == 'C2'){
+                        currentTotal += distance.c3l1 * L1Cost
+                    }else if(currentPostition == 'C3' && location[j+1] == 'L1'){
+                        currentTotal += distance.c3l1 * totalweightcost['C3']
+                    }else if(currentPostition == 'C2' && location[j+1] == 'L1'){
+                        currentTotal += distance.c2l1 * totalweightcost['C2']
+                    }else if(currentPostition == 'C3' && location[j+1] == 'C2'){
+                        currentTotal += distance.c2c3 * totalweightcost['C3']
+                    }else if(currentPostition == 'C2' && location[j+1] == 'C3'){
+                        currentTotal += distance.c2c3 * totalweightcost['C2']
+                    }else if(currentPostition == 'C1' && location[j+1] == 'L1'){
+                        currentTotal += distance.c1l1 * totalweightcost['C1']
+                    }else if(currentPostition == 'L1' && location[j+1] == 'C1'){
+                        currentTotal += distance.c1l1 * L1Cost
+                    }else if(currentPostition == 'C1' && location[j+1] == 'L1'){
+                        currentTotal += distance.c1l1 * totalweightcost['C1']
+                    }else if(currentPostition == 'C3' && location[j+1] == 'L1'){
+                        currentTotal += distance.c3l1 * totalweightcost['C3']
+                    }else if(currentPostition == 'L1' && location[j+1] == 'C1'){
+                        currentTotal += distance.c3l1 * L1Cost
+                    }else if(currentPostition == 'L1' && location[j+1] == 'C3'){
+                        currentTotal += distance.c3l1 * L1Cost
+                    }
+                    actualTotal += currentTotal
+                }
+                mini = Math.min(actualTotal,min)
+                totalCost.push(mini)    
+            }
+        }
+
     }
 
-    return Math.min(...totalCost);
+    return Math.min(...totalCost)
 }
+
+    
 
 //unit cost according to weight
 function calculateOutput(input) {
@@ -81,10 +244,13 @@ function calculateOutput(input) {
     }
 }
 
-const getMinimumCost = (req, res) => {
-    let transitData = req.body;
 
-    // Validate keys
+
+
+const getMinimumCost = (req, res) => {
+    let transitData = req.body
+
+     // Validate keys
     const validKeys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
     const requestData = req.body;
 
@@ -94,31 +260,31 @@ const getMinimumCost = (req, res) => {
         }
     }
 
-    let productdetailC1 = {"A": 3, "B": 2, "C": 8};
-    let productdetailC2 = {"D": 12, "E": 25, "F": 15};
-    let productdetailC3 = {"G": 0.5, "H": 1, "I": 2};
+    let productdetailC1 = {"A": 3, "B": 2, "C": 8}
+    let productdetailC2 = {"D": 12, "E": 25, "F": 15}
+    let productdetailC3 = {"G": 0.5, "H": 1, "I": 2}
 
     //Will filter the data based on input only
     const definedValuesObj = Object.fromEntries(
         Object.entries(transitData).filter(([key, value]) => (value !== undefined || value !== 0))
-    );
+    )
 
-    if (Object.keys(definedValuesObj).length > 0) {
+    if(Object.keys(definedValuesObj).length > 0){
         //This will hold the total order weight
-        let weightData = {};
+        let wightData = {}
         for (const key in definedValuesObj) {
-            const val = definedValuesObj[key];
-            if (key in productdetailC1) {
-                weightData.C1 = weightData.C1 ? weightData.C1 : 0;
-                weightData.C1 += val * productdetailC1[key];
+            val = definedValuesObj[key];
+            if (key in productdetailC1){
+                wightData.C1 = wightData.C1 ? wightData.C1 : 0
+                wightData.C1 += val * productdetailC1[key]
             }
-            else if (key in productdetailC2) {
-                weightData.C2 = weightData.C2 ? weightData.C2 : 0;
-                weightData.C2 += val * productdetailC2[key];
+            else if (key in productdetailC2){
+                wightData.C2 = wightData.C2 ? wightData.C2 : 0
+                wightData.C2 += val * productdetailC2[key]
             }
-            else if (key in productdetailC3) {
-                weightData.C3 = weightData.C3 ? weightData.C3 : 0;
-                weightData.C3 += val * productdetailC3[key];
+            else if (key in productdetailC3){
+                wightData.C3 = wightData.C3 ? wightData.C3 : 0
+                wightData.C3 += val * productdetailC3[key]
             }
         }
 
@@ -126,34 +292,38 @@ const getMinimumCost = (req, res) => {
             "C1": {"L1": 3, "C2": 4, "C3": 7},
             "C2": {"L1": 2.5, "C1": 4, "C3": 3},
             "C3": {"L1": 2, "C1": 7, "C2": 3}
-        };
-
-        let unitWeightCost = {};
-        for (const key in weightData) {
-            if (key === 'C1') {
-                unitWeightCost.C1 = calculateOutput(weightData[key]);    
-            }
-            if (key === 'C2') {
-                unitWeightCost.C2 = calculateOutput(weightData[key]);    
-            }
-            if (key === 'C3') {
-                unitWeightCost.C3 = calculateOutput(weightData[key]);   
-            }
-        }
-        let route = [];
-        for (const key in unitWeightCost) {
-            route.push(key);
         }
 
-        let minimumCost = calculateTotalCost(route, unitWeightCost);
-        if (minimumCost) {
-            res.status(200).send({minimumCost: minimumCost});
-        } else {
-            res.status(400).send({message: 'no response available'});
+        let unitwightCost = {}
+        for (const key in wightData) {
+            if (key == 'C1'){
+                unitwightCost.C1 = calculateOutput(wightData[key])    
+            }
+            if (key == 'C2'){
+                unitwightCost.C2 = calculateOutput(wightData[key])    
+            }
+            if (key == 'C3'){
+                unitwightCost.C3 = calculateOutput(wightData[key])   
+            }
         }
-    } else {
-        res.status(400).send({message: 'Invalid data'});
+        let route = []
+        for (const key in unitwightCost) {
+            route.push(key)
+        }
+
+        let minimumcost = calculateTotalCost(route,unitwightCost)
+        if(minimumcost){
+            res.status(200).send({minimumcost:minimumcost})
+        }else{
+            res.status(400).send({message: 'no response available'})
+        }
+    }else{
+        invalidData
     }
+
+    
+
+    
 };
 
 module.exports = { getMinimumCost };
